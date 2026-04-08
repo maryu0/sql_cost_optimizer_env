@@ -58,7 +58,8 @@ class IndexAdvisorGrader:
 
         # Calculate score based on required indexes found
         correct_indexes = found_indexes & required_indexes
-        score = len(correct_indexes) / len(required_indexes)
+        score = len(correct_indexes) / len(required_indexes) if required_indexes else 0.0
+        score = max(0.01, min(0.99, score))  # Ensure within range
 
         # Feedback
         if score >= 0.9:
@@ -160,6 +161,9 @@ class QueryRewriterGrader:
         else:
             score *= 0.5  # Severe penalty for incorrect results
             feedback_parts.append("✗ CRITICAL: Results do not match original query!")
+
+        # Ensure score is within valid range
+        score = max(0.01, min(0.99, score))
 
         # Bonus for performance improvement
         if optimized_time_ms > 0 and baseline_time_ms > 0:
@@ -269,6 +273,9 @@ class SchemaNormalizerGrader:
             feedback_parts.append("⚠ Partial dimension tables created")
         else:
             feedback_parts.append("✗ Missing key dimension tables (locations, devices)")
+
+        # Ensure score is within valid range
+        score = max(0.01, min(0.99, score))
 
         return max(0.01, min(0.99, score)), " ".join(feedback_parts)
 
