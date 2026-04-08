@@ -11,6 +11,11 @@ import time
 from openai import OpenAI
 from dotenv import load_dotenv
 
+# Force UTF-8 encoding on Windows
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+
 # Add src to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
