@@ -250,7 +250,7 @@ def run_baseline_inference():
     print(f"{'='*80}")
     print(f"Total Runtime: {elapsed_time:.2f} seconds")
     print(f"\nScores by Task:")
-    
+
     for task_name, scores in all_scores.items():
         print(f"\n  {task_name}:")
         print(f"    Reward: {scores['reward']:.3f}")
@@ -273,6 +273,34 @@ def run_baseline_inference():
         print(f"\n[WARN] WARNING: Runtime exceeded 20 minutes ({elapsed_time:.2f}s)")
     else:
         print(f"\n[OK] Runtime within 20-minute limit ({elapsed_time:.2f}s)")
+
+    # Output results in validator-friendly JSON format (REQUIRED)
+    import json
+    results = {
+        "tasks": []
+    }
+
+    for task_name, scores in all_scores.items():
+        # Ensure grade score is within valid range (0, 1) not [0, 1]
+        grade_score = scores['grade']
+        # Clamp to valid range if needed
+        if grade_score <= 0.0:
+            grade_score = 0.01
+        elif grade_score >= 1.0:
+            grade_score = 0.99
+
+        results["tasks"].append({
+            "name": task_name,
+            "grader": {
+                "score": grade_score,
+                "feedback": scores['feedback']
+            }
+        })
+
+    # Print JSON output for validator
+    print("\n[OUTPUT_JSON]")
+    print(json.dumps(results, indent=2))
+    print("[/OUTPUT_JSON]")
 
     print("[END]")
     return all_scores
