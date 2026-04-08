@@ -2,11 +2,18 @@
 FastAPI wrapper for SQL Cost Optimizer Environment.
 Provides REST API endpoints for Hugging Face Spaces deployment.
 """
+import sys
+import os
+
+# Force UTF-8 encoding on Windows
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
-import os
 from dotenv import load_dotenv
 
 from src.environment import SQLOptimizerEnv
