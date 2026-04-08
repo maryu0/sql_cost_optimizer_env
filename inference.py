@@ -43,24 +43,31 @@ except ImportError as e:
 load_dotenv()
 
 # Initialize OpenAI-compatible client (REQUIRED by hackathon rules)
-# Supports both OpenAI and Groq (Groq-compatible OpenAI endpoint)
-groq_key = os.getenv("GROQ_API_KEY")
-openai_key = os.getenv("OPENAI_API_KEY")
+# MUST use validator-provided API_BASE_URL and API_KEY when available
+api_base_url = os.environ.get("API_BASE_URL")
+api_key = os.environ.get("API_KEY")
 
-# Prefer Groq if available, fallback to OpenAI
-if groq_key:
-    api_key = groq_key
-    api_base_url = os.getenv("API_BASE_URL", "https://api.groq.com/openai/v1")
-    logger.info("Using Groq API")
-elif openai_key:
-    api_key = openai_key
-    api_base_url = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
-    logger.info("Using OpenAI API")
+if api_base_url and api_key:
+    # Use validator-provided endpoint exclusively
+    logger.info(f"Using validator-provided API endpoint: {api_base_url}")
 else:
-    # Fallback for validation environments without credentials
-    api_key = "sk-test-dummy-key-for-validation"
-    api_base_url = "https://api.openai.com/v1"
-    logger.warning("No API key found. Using test key.")
+    # Local development fallback
+    groq_key = os.getenv("GROQ_API_KEY")
+    openai_key = os.getenv("OPENAI_API_KEY")
+
+    if groq_key:
+        api_key = groq_key
+        api_base_url = "https://api.groq.com/openai/v1"
+        logger.info("Using local Groq API")
+    elif openai_key:
+        api_key = openai_key
+        api_base_url = "https://api.openai.com/v1"
+        logger.info("Using local OpenAI API")
+    else:
+        # Fallback test key
+        api_key = "sk-test-dummy-key-for-validation"
+        api_base_url = "https://api.openai.com/v1"
+        logger.warning("No API credentials found. Using test key.")
 
 
 try:
@@ -68,16 +75,13 @@ try:
         base_url=api_base_url,
         api_key=api_key
     )
-    logger.info(f"OpenAI client initialized with base_url: {api_base_url}")
+    logger.info(f"OpenAI client initialized with: {api_base_url}")
 except Exception as e:
     logger.warning(f"OpenAI client init warning: {e}")
     client = None
 
-# Use model appropriate for the API
-if groq_key:
-    MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.3-70b-versatile")
-else:
-    MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+# Use appropriate model
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 
 
 def generate_optimization_action(observation: dict, task_type: str) -> Action:
