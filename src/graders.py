@@ -40,7 +40,7 @@ class IndexAdvisorGrader:
         matches = re.findall(index_pattern, action_sql, re.IGNORECASE)
 
         if not matches:
-            return 0.0, "No valid CREATE INDEX statements found."
+            return 0.01, "No valid CREATE INDEX statements found."
 
         # Required indexes for optimal performance
         required_indexes = {
@@ -77,7 +77,7 @@ class IndexAdvisorGrader:
         if optimized_time_ms > 0 and baseline_time_ms > 0:
             speedup = baseline_time_ms / optimized_time_ms
             if speedup >= 2.0:
-                score = min(1.0, score + 0.1)
+                score = min(0.99, score + 0.1)
                 feedback_parts.append(f"✓ Excellent speedup: {speedup:.2f}x")
             elif speedup >= 1.5:
                 feedback_parts.append(f"✓ Good speedup: {speedup:.2f}x")
@@ -89,7 +89,7 @@ class IndexAdvisorGrader:
             score *= 0.8
             feedback_parts.append("✗ Too many indexes (over-indexing can hurt write performance)")
 
-        return min(1.0, score), " ".join(feedback_parts)
+        return max(0.01, min(0.99, score)), " ".join(feedback_parts)
 
 
 class QueryRewriterGrader:
@@ -165,17 +165,17 @@ class QueryRewriterGrader:
         if optimized_time_ms > 0 and baseline_time_ms > 0:
             speedup = baseline_time_ms / optimized_time_ms
             if speedup >= 3.0:
-                score = min(1.0, score + 0.15)
+                score = min(0.99, score + 0.15)
                 feedback_parts.append(f"✓ Excellent speedup: {speedup:.2f}x")
             elif speedup >= 2.0:
-                score = min(1.0, score + 0.1)
+                score = min(0.99, score + 0.1)
                 feedback_parts.append(f"✓ Good speedup: {speedup:.2f}x")
             elif speedup >= 1.5:
                 feedback_parts.append(f"✓ Moderate speedup: {speedup:.2f}x")
             else:
                 feedback_parts.append(f"✗ Insufficient speedup: {speedup:.2f}x (need 2x+)")
 
-        return min(1.0, score), " ".join(feedback_parts)
+        return max(0.01, min(0.99, score)), " ".join(feedback_parts)
 
     def _compare_results(
         self,
@@ -270,7 +270,7 @@ class SchemaNormalizerGrader:
         else:
             feedback_parts.append("✗ Missing key dimension tables (locations, devices)")
 
-        return min(1.0, score), " ".join(feedback_parts)
+        return max(0.01, min(0.99, score)), " ".join(feedback_parts)
 
 
 def get_grader(task_type: str):
