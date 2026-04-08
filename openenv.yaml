@@ -77,7 +77,7 @@ environment:
       metadata:
         type: object
         description: Additional context (row counts, index info, etc.)
-        
+
   action_space:
     type: object
     properties:
@@ -127,4 +127,4 @@ deployment:
   resources:
     vcpu: 2
     memory: 8gb
-  runtime_limit: 1200  # 20 minutes in seconds
+  runtime_limit: 1200 # 20 minutes in seconds

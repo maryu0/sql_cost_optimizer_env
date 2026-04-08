@@ -70,6 +70,7 @@ See [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) for detailed implementation notes.
 ### Observation Space
 
 Each observation includes:
+
 - `task_type`: Current task (index-advisor, query-rewriter, schema-normalizer)
 - `query`: Original SQL query to optimize
 - `database_schema`: CREATE TABLE statements defining the schema
@@ -82,6 +83,7 @@ Each observation includes:
 ### Action Space
 
 Each action must include:
+
 - `optimized_query`: The optimized SQL (CREATE INDEX, rewritten query, or schema DDL)
 - `explanation`: Human-readable explanation of optimization strategy
 - `suggested_changes`: List of specific changes made
@@ -120,6 +122,7 @@ python -m src.main
 ### Environment Variables
 
 Set these in a `.env` file:
+
 ```
 OPENAI_API_KEY=your-key-here
 MODEL_NAME=gpt-4o-mini
