@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div align="center">
 
 # 💎 SQL Cost Optimizer Environment
@@ -1448,3 +1449,15 @@ This project is licensed under the **MIT License** — see [LICENSE](LICENSE) fo
 **🎯 Teaching AI agents to optimize databases like senior DBAs — one query at a time.**
 
 </div>
+=======
+---
+title: My Env
+emoji: 🐢
+colorFrom: blue
+colorTo: pink
+sdk: docker
+pinned: false
+---
+
+Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+>>>>>>> 5fb8499eda93f01de6ba07cbc4e2753d5c102c1d
