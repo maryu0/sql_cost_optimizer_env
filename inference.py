@@ -5,9 +5,10 @@ Demonstrates agent interaction and reproduces baseline scores.
 REQUIRED: Must be in ROOT DIRECTORY and use OpenAI client.
 Runtime: < 20 minutes
 """
-import os
 import sys
+import os
 import time
+import logging
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -15,6 +16,17 @@ from dotenv import load_dotenv
 if sys.platform == "win32":
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+
+# Setup logging to file for debugging validator issues
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('inference.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Add src to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -31,26 +43,42 @@ except ImportError as e:
 # Load environment variables
 load_dotenv()
 
-# Initialize OpenAI client (REQUIRED by hackathon rules)
+# Initialize OpenAI-compatible client (REQUIRED by hackathon rules)
 # Supports both OpenAI and Groq (Groq-compatible OpenAI endpoint)
-api_key = os.getenv("OPENAI_API_KEY") or os.getenv("GROQ_API_KEY")
-api_base_url = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
+groq_key = os.getenv("GROQ_API_KEY")
+openai_key = os.getenv("OPENAI_API_KEY")
 
-if not api_key:
+# Prefer Groq if available, fallback to OpenAI
+if groq_key:
+    api_key = groq_key
+    api_base_url = os.getenv("API_BASE_URL", "https://api.groq.com/openai/v1")
+    logger.info("Using Groq API")
+elif openai_key:
+    api_key = openai_key
+    api_base_url = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
+    logger.info("Using OpenAI API")
+else:
     # Fallback for validation environments without credentials
     api_key = "sk-test-dummy-key-for-validation"
-    print("[WARN] No API key found. Using test key.")
+    api_base_url = "https://api.openai.com/v1"
+    logger.warning("No API key found. Using test key.")
+
 
 try:
     client = OpenAI(
         base_url=api_base_url,
         api_key=api_key
     )
+    logger.info(f"OpenAI client initialized with base_url: {api_base_url}")
 except Exception as e:
-    print(f"[WARN] OpenAI client init warning: {e}")
+    logger.warning(f"OpenAI client init warning: {e}")
     client = None
 
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+# Use model appropriate for the API
+if groq_key:
+    MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.3-70b-versatile")
+else:
+    MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
 
 
 def generate_optimization_action(observation: dict, task_type: str) -> Action:
@@ -263,24 +291,25 @@ def run_baseline_inference():
 
 if __name__ == "__main__":
     try:
+        logger.info("=" * 80)
+        logger.info("Starting SQL Cost Optimizer inference...")
+        logger.info("=" * 80)
+
         # Check environment variables (optional for validation)
         if not os.getenv("OPENAI_API_KEY") and not os.getenv("GROQ_API_KEY"):
-            print("[WARN] No API key found. Using test key for validation.")
+            logger.warning("No API key found. Using test key for validation.")
 
         # Run inference
         try:
             scores = run_baseline_inference()
+            logger.info("Inference completed successfully")
         except Exception as e:
-            print(f"\n[ERROR] Inference error: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            logger.error(f"Inference error: {str(e)}", exc_info=True)
             # Exit 0 even on error to avoid validator failure
             sys.exit(0)
 
         sys.exit(0)
     except Exception as e:
-        print(f"\n[ERROR] FATAL ERROR: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"FATAL ERROR: {str(e)}", exc_info=True)
         # Always exit 0 in validation environment
         sys.exit(0)
