@@ -153,13 +153,7 @@ def run_baseline_inference():
             obs = env.reset(task_name=task_name, seed=42)
             obs_dict = obs.model_dump()
 
-            print(f"\n📊 Initial State:")
-            print(f"   Baseline Execution Time: {obs_dict['current_execution_time_ms']:.2f} ms")
-            print(f"   Query: {obs_dict['query'][:100]}...")
-            print(f"   Hint: {obs_dict.get('hint', 'None')}")
-
             # Generate action using LLM
-            print(f"\n🤖 Generating optimization using {MODEL_NAME}...")
             action = generate_optimization_action(obs_dict, task_name)
 
             print(f"\n📝 Generated Optimization:")

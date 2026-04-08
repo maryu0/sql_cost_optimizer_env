@@ -1,10 +1,17 @@
-# Use Python 3.11 slim image for smaller size
+# ==============================================================================
+# SQL Cost Optimizer OpenEnv - Hugging Face Spaces Dockerfile
+# ==============================================================================
 FROM python:3.11-slim
 
-# Prevent Python from writing pyc files and buffering stdout/stderr
+# HF Spaces labels
+LABEL org.opencontainers.image.title="SQL Cost Optimizer OpenEnv"
+LABEL space.huggingface.sdk="docker"
+LABEL openenv="true"
+
+# Environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000
+    PORT=7860
 
 # Set working directory
 WORKDIR /app
@@ -12,30 +19,33 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Create non-root user (HF Spaces requirement)
+RUN useradd -m -u 1000 appuser
+
+# Copy requirements first for caching
+COPY --chown=appuser:appuser requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY --chown=appuser:appuser . .
 
-# Create non-root user for security
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+# Set ownership
+RUN chown -R appuser:appuser /app
 
 USER appuser
 
-# Expose port
-EXPOSE 8000
+# Expose port 7860 (HF Spaces default)
+EXPOSE 7860
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')" || exit 1
+# Health check using curl
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:7860/health || exit 1
 
-# Run the application
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run on port 7860
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "7860"]
