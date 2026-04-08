@@ -80,7 +80,7 @@ Original Query:
 {observation['query']}
 
 Database Schema:
-{observation['schema']}
+{observation['database_schema']}
 
 Current Execution Time: {observation['current_execution_time_ms']:.2f} ms
 

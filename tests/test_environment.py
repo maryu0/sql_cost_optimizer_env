@@ -24,7 +24,7 @@ class TestEnvironmentCompliance:
         assert isinstance(obs, Observation)
         assert obs.task_type in ["index-advisor", "query-rewriter", "schema-normalizer"]
         assert len(obs.query) > 0
-        assert len(obs.schema) > 0
+        assert len(obs.database_schema) > 0
         assert obs.current_execution_time_ms > 0
 
     def test_reset_with_task_name(self, env):
@@ -224,7 +224,7 @@ def test_all_tasks_loadable():
         obs = env.reset(task_name=task)
         assert obs.task_type == task
         assert len(obs.query) > 0
-        assert len(obs.schema) > 0
+        assert len(obs.database_schema) > 0
     
     env.close()
 

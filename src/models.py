@@ -19,7 +19,7 @@ class Observation(BaseModel):
     query: str = Field(
         description="The original SQL query to optimize"
     )
-    schema: str = Field(
+    database_schema: str = Field(
         description="Database schema as CREATE TABLE statements"
     )
     current_execution_time_ms: float = Field(

@@ -115,7 +115,7 @@ class SQLOptimizerEnv:
         observation = Observation(
             task_type=task_name,
             query=initial_query,
-            schema=schema_sql,
+            database_schema=schema_sql,
             current_execution_time_ms=self.baseline_time_ms,
             explain_plan=explain_plan,
             sample_data_preview=sample_data,
@@ -252,7 +252,7 @@ class SQLOptimizerEnv:
         observation = Observation(
             task_type=self.current_task,
             query=self.current_task_config["initial_query"].strip(),
-            schema=self.current_task_config.get("schema_sql", ""),
+            database_schema=self.current_task_config.get("schema_sql", ""),
             current_execution_time_ms=optimized_time_ms,
             explain_plan=explain_plan,
             sample_data_preview=sample_data,
