@@ -21,18 +21,22 @@ from src.models import Action
 load_dotenv()
 
 # Initialize OpenAI client (REQUIRED by hackathon rules)
-api_key = os.getenv("OPENAI_API_KEY")
+# Supports both OpenAI and Groq (Groq-compatible OpenAI endpoint)
+api_key = os.getenv("OPENAI_API_KEY") or os.getenv("GROQ_API_KEY")
+api_base_url = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
+
 if not api_key:
-    api_key = "sk-placeholder-1234567890"
+    # Fallback for validation environments without credentials
+    api_key = "sk-test-dummy-key-for-validation"
+    print("[WARN] No API key found. Using test key.")
 
 try:
     client = OpenAI(
-        base_url=os.getenv("API_BASE_URL", "https://api.openai.com/v1"),
+        base_url=api_base_url,
         api_key=api_key
     )
 except Exception as e:
-    print(f"Warning: Failed to initialize OpenAI client: {e}")
-    print("Using mock client for validation")
+    print(f"[WARN] OpenAI client init warning: {e}")
     client = None
 
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
@@ -125,7 +129,7 @@ Be concise and focused on the optimization.
         return action
 
     except Exception as e:
-        print(f"❌ Error generating action: {e}")
+        print(f"[ERROR] Error generating action: {e}")
         # Fallback action
         return Action(
             optimized_query=observation['query'],  # Return original
@@ -169,15 +173,15 @@ def run_baseline_inference():
             # Generate action using LLM
             action = generate_optimization_action(obs_dict, task_name)
 
-            print(f"\n📝 Generated Optimization:")
+            print(f"\n[INFO] Generated Optimization:")
             print(f"   {action.optimized_query[:200]}...")
 
             # Execute action
-            print(f"\n⚙️  Executing optimization...")
+            print(f"\n[RUN] Executing optimization...")
             obs, reward, done, info = env.step(action)
 
             # Display results
-            print(f"\n🎯 RESULTS:")
+            print(f"\n[RESULT] RESULTS:")
             print(f"   Reward Score: {reward.score:.3f}")
             print(f"   Grade Score: {info.get('grade_score', 0.0):.3f}")
             print(f"   Feedback: {reward.feedback}")
@@ -191,7 +195,7 @@ def run_baseline_inference():
                 "feedback": reward.feedback
             }
 
-            print(f"\n📈 Performance:")
+            print(f"\n[PERF] Performance:")
             print(f"   Baseline Time: {info.get('baseline_time_ms', 0.0):.2f} ms")
             print(f"   Optimized Time: {info.get('optimized_time_ms', 0.0):.2f} ms")
             speedup = (
@@ -201,7 +205,7 @@ def run_baseline_inference():
             print(f"   Speedup: {speedup:.2f}x")
 
         except Exception as e:
-            print(f"\n❌ ERROR in {task_name}: {str(e)}")
+            print(f"\n[ERROR] ERROR in {task_name}: {str(e)}")
             all_scores[task_name] = {
                 "reward": -1.0,
                 "grade": 0.0,
@@ -234,14 +238,14 @@ def run_baseline_inference():
     print(f"    Grade:  {avg_grade:.3f}")
 
     print(f"\n{'='*80}")
-    print("✅ Baseline inference complete!")
+    print("[OK] Baseline inference complete!")
     print(f"{'='*80}")
 
     # Verify runtime constraint
     if elapsed_time > 1200:  # 20 minutes
-        print(f"\n⚠️  WARNING: Runtime exceeded 20 minutes ({elapsed_time:.2f}s)")
+        print(f"\n[WARN] WARNING: Runtime exceeded 20 minutes ({elapsed_time:.2f}s)")
     else:
-        print(f"\n✅ Runtime within 20-minute limit ({elapsed_time:.2f}s)")
+        print(f"\n[OK] Runtime within 20-minute limit ({elapsed_time:.2f}s)")
 
     return all_scores
 
@@ -249,7 +253,7 @@ def run_baseline_inference():
 if __name__ == "__main__":
     # Check environment variables
     if not os.getenv("OPENAI_API_KEY"):
-        print("❌ ERROR: OPENAI_API_KEY not set!")
+        print("[ERROR] ERROR: OPENAI_API_KEY not set!")
         print("Please set it in your .env file or environment.")
         sys.exit(1)
 
@@ -258,7 +262,7 @@ if __name__ == "__main__":
         scores = run_baseline_inference()
         sys.exit(0)
     except Exception as e:
-        print(f"\n❌ FATAL ERROR: {str(e)}")
+        print(f"\n[ERROR] FATAL ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
