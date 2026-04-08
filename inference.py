@@ -17,13 +17,12 @@ if sys.platform == "win32":
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-# Setup logging to file for debugging validator issues
+# Setup logging to file for debugging validator issues (suppress stdout noise)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('inference.log'),
-        logging.StreamHandler()
+        logging.FileHandler('inference.log')
     ]
 )
 logger = logging.getLogger(__name__)
