@@ -21,9 +21,14 @@ from src.models import Action
 load_dotenv()
 
 # Initialize OpenAI client (REQUIRED by hackathon rules)
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    print("ERROR: OPENAI_API_KEY not set. Using placeholder.")
+    api_key = "sk-placeholder"  # Placeholder to avoid crash
+
 client = OpenAI(
     base_url=os.getenv("API_BASE_URL", "https://api.openai.com/v1"),
-    api_key=os.getenv("OPENAI_API_KEY")
+    api_key=api_key
 )
 
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")

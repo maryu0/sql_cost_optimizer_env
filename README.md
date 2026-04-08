@@ -11,7 +11,7 @@ pinned: false
 
 # 💎 SQL Cost Optimizer Environment
 
-### *Teaching AI Agents to Think Like Database Experts*
+### _Teaching AI Agents to Think Like Database Experts_
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![OpenEnv](https://img.shields.io/badge/OpenEnv-Compliant-00d4aa?style=for-the-badge&logo=checkmarx)](https://github.com/openenv/openenv)
@@ -52,7 +52,7 @@ The **SQL Cost Optimizer Environment** is a reinforcement learning environment d
 import requests
 
 # Reset environment
-response = requests.post("https://maryu0-my-env.hf.space/reset", 
+response = requests.post("https://maryu0-my-env.hf.space/reset",
     json={"task_name": "index-advisor"})
 observation = response.json()["observation"]
 
