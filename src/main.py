@@ -2,7 +2,7 @@
 FastAPI wrapper for SQL Cost Optimizer Environment.
 Provides REST API endpoints for Hugging Face Spaces deployment.
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
@@ -79,22 +79,24 @@ async def health_check():
 
 
 @app.post("/reset")
-async def reset(request: ResetRequest) -> Dict[str, Any]:
+async def reset(request: Optional[ResetRequest] = Body(None)) -> Dict[str, Any]:
     """
     Reset the environment to initial state.
-    
+
     Args:
         request: Reset request with optional task_name and seed
-        
+
     Returns:
         Initial observation
     """
     global env
     if env is None:
         raise HTTPException(status_code=503, detail="Environment not initialized")
-    
+
     try:
-        observation = env.reset(task_name=request.task_name, seed=request.seed)
+        task_name = request.task_name if request else None
+        seed = request.seed if request else None
+        observation = env.reset(task_name=task_name, seed=seed)
         return {
             "observation": observation.model_dump(),
             "info": {
