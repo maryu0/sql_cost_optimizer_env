@@ -1,0 +1,110 @@
+name: sql-cost-optimizer-env
+version: 1.0.0
+description: |
+  An OpenEnv environment where AI agents learn to optimize SQL queries for 
+  performance (latency), cost (cloud compute), and correctness (result equivalence).
+  Agents receive slow queries and must suggest optimizations through indexing, 
+  query rewriting, or schema normalization.
+
+author: Hackathon Team
+repository: https://github.com/your-org/sql-cost-optimizer-env
+license: MIT
+
+tasks:
+  - name: index-advisor
+    description: |
+      Suggest CREATE INDEX statements for slow queries with inefficient WHERE clauses.
+      Agent must identify the correct table and column(s) to index.
+    difficulty: easy
+    
+  - name: query-rewriter
+    description: |
+      Rewrite inefficient queries (N+1 patterns, subqueries) into efficient JOINs.
+      Optimized query must be at least 2x faster and return identical results.
+    difficulty: medium
+    
+  - name: schema-normalizer
+    description: |
+      Identify denormalized schemas and suggest normalized alternatives with foreign keys.
+      Must create new tables, establish relationships, and provide safe migration paths.
+    difficulty: hard
+
+environment:
+  observation_space:
+    type: object
+    properties:
+      task_type:
+        type: string
+        enum: [index-advisor, query-rewriter, schema-normalizer]
+      query:
+        type: string
+        description: The original SQL query to optimize
+      schema:
+        type: string
+        description: Database schema (CREATE TABLE statements)
+      current_execution_time_ms:
+        type: number
+        description: Baseline execution time in milliseconds
+      explain_plan:
+        type: string
+        description: EXPLAIN QUERY PLAN output from SQLite
+      sample_data_preview:
+        type: string
+        description: Sample rows from relevant tables
+      hint:
+        type: string
+        description: Optional hint about optimization opportunity
+      metadata:
+        type: object
+        description: Additional context (row counts, index info, etc.)
+        
+  action_space:
+    type: object
+    properties:
+      optimized_query:
+        type: string
+        description: The optimized SQL (query or DDL statement)
+      explanation:
+        type: string
+        description: Human-readable explanation of optimization strategy
+      suggested_changes:
+        type: array
+        description: List of specific changes made
+        items:
+          type: string
+      confidence:
+        type: number
+        minimum: 0.0
+        maximum: 1.0
+        description: Agent's confidence in this optimization
+      metadata:
+        type: object
+        description: Additional action metadata
+
+  reward_range:
+    min: -1.0
+    max: 1.0
+
+api:
+  base_path: /
+  endpoints:
+    - path: /reset
+      method: POST
+      description: Initialize environment with optional task selection
+    - path: /step
+      method: POST
+      description: Execute action and receive observation, reward, done status
+    - path: /state
+      method: GET
+      description: Retrieve current environment state for debugging
+    - path: /health
+      method: GET
+      description: Health check endpoint
+
+deployment:
+  platform: huggingface-spaces
+  docker: true
+  resources:
+    vcpu: 2
+    memory: 8gb
+  runtime_limit: 1200  # 20 minutes in seconds
