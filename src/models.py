@@ -3,7 +3,7 @@ Pydantic models for SQL Cost Optimizer Environment.
 Defines the observation space, action space, and reward structure.
 """
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class Observation(BaseModel):
@@ -11,6 +11,7 @@ class Observation(BaseModel):
     Environment observation returned after reset() or step().
     Contains all information the agent needs to make optimization decisions.
     """
+    model_config = ConfigDict(protected_namespaces=())
     task_type: str = Field(
         description="Type of optimization task",
         pattern="^(index-advisor|query-rewriter|schema-normalizer)$"
