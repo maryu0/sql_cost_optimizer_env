@@ -43,31 +43,14 @@ except ImportError as e:
 load_dotenv()
 
 # Initialize OpenAI-compatible client (REQUIRED by hackathon rules)
-# MUST use validator-provided API_BASE_URL and API_KEY when available
-api_base_url = os.environ.get("API_BASE_URL")
-api_key = os.environ.get("API_KEY")
+# Use validator-provided credentials with sensible defaults
+API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
+API_KEY = os.getenv("API_KEY", os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY") or "sk-test-dummy-key-for-validation")
 
-if api_base_url and api_key:
-    # Use validator-provided endpoint exclusively
-    logger.info(f"Using validator-provided API endpoint: {api_base_url}")
-else:
-    # Local development fallback
-    groq_key = os.getenv("GROQ_API_KEY")
-    openai_key = os.getenv("OPENAI_API_KEY")
+logger.info(f"Using API endpoint: {API_BASE_URL}")
 
-    if groq_key:
-        api_key = groq_key
-        api_base_url = "https://api.groq.com/openai/v1"
-        logger.info("Using local Groq API")
-    elif openai_key:
-        api_key = openai_key
-        api_base_url = "https://api.openai.com/v1"
-        logger.info("Using local OpenAI API")
-    else:
-        # Fallback test key
-        api_key = "sk-test-dummy-key-for-validation"
-        api_base_url = "https://api.openai.com/v1"
-        logger.warning("No API credentials found. Using test key.")
+api_base_url = API_BASE_URL
+api_key = API_KEY
 
 
 try:
