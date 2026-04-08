@@ -182,6 +182,7 @@ def run_baseline_inference():
     """
     Run baseline inference on all tasks.
     """
+    print("[START]")
     print("=" * 80)
     print("SQL COST OPTIMIZER - BASELINE INFERENCE")
     print("=" * 80)
@@ -200,6 +201,7 @@ def run_baseline_inference():
     start_time = time.time()
 
     for task_name in tasks:
+        print(f"\n[STEP]")
         print(f"\n{'='*80}")
         print(f"TASK: {task_name.upper()}")
         print(f"{'='*80}")
@@ -286,6 +288,7 @@ def run_baseline_inference():
     else:
         print(f"\n[OK] Runtime within 20-minute limit ({elapsed_time:.2f}s)")
 
+    print("[END]")
     return all_scores
 
 
