@@ -18,6 +18,9 @@ dependencies = [
     "httpx>=0.25.0",
 ]
 
+[project.scripts]
+server = "uvicorn src.main:app --host 0.0.0.0 --port 7860"
+
 [tool.uv.scripts]
 server = "uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
 test = "pytest"
