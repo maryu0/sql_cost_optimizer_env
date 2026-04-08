@@ -65,6 +65,67 @@ response = requests.post("https://maryu0-my-env.hf.space/step",
 
 See [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) for detailed implementation notes.
 
+## 🏗️ Environment Specification
+
+### Observation Space
+
+Each observation includes:
+- `task_type`: Current task (index-advisor, query-rewriter, schema-normalizer)
+- `query`: Original SQL query to optimize
+- `database_schema`: CREATE TABLE statements defining the schema
+- `current_execution_time_ms`: Baseline execution time in milliseconds
+- `explain_plan`: EXPLAIN QUERY PLAN output from SQLite
+- `sample_data_preview`: Sample rows from relevant tables
+- `hint`: Optional optimization hint
+- `metadata`: Additional context (row counts, index info, costs)
+
+### Action Space
+
+Each action must include:
+- `optimized_query`: The optimized SQL (CREATE INDEX, rewritten query, or schema DDL)
+- `explanation`: Human-readable explanation of optimization strategy
+- `suggested_changes`: List of specific changes made
+- `confidence`: Agent's confidence in this optimization (0.0-1.0)
+
+### Reward Signal
+
+- **Grade Score**: Objective evaluation of optimization quality
+- **Performance Bonus**: Extra reward for significant speedups (1.5x+)
+- **Cost Reduction**: Reward for lower estimated cloud compute costs
+- **Correctness Penalty**: Severe penalty if results don't match original query
+
+## 🛠️ Setup Instructions
+
+### Local Setup
+
+```bash
+# Clone the repository
+git clone https://huggingface.co/spaces/maryu0/my-env
+cd sql-cost-optimizer-env
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run baseline inference
+python inference.py
+
+# Or start the API server
+python -m src.main
+```
+
+### Environment Variables
+
+Set these in a `.env` file:
+```
+OPENAI_API_KEY=your-key-here
+MODEL_NAME=gpt-4o-mini
+API_BASE_URL=https://api.openai.com/v1
+```
+
 ## 📄 License
 
 MIT License - See LICENSE file for details

@@ -235,7 +235,7 @@ def run_baseline_inference():
             print(f"\n[ERROR] ERROR in {task_name}: {str(e)}")
             all_scores[task_name] = {
                 "reward": -1.0,
-                "grade": 0.0,
+                "grade": 0.01,  # Must be strictly between 0 and 1, not exactly 0.0
                 "speedup": 0.0,
                 "feedback": f"Error: {str(e)}"
             }

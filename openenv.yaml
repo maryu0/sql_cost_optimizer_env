@@ -16,18 +16,38 @@ tasks:
       Suggest CREATE INDEX statements for slow queries with inefficient WHERE clauses.
       Agent must identify the correct table and column(s) to index.
     difficulty: easy
-    
+    grader:
+      type: deterministic
+      criteria:
+        - Identifies correct tables and columns for indexing
+        - Performance improvement of 1.5x or better
+        - Avoids over-indexing (max 5 indexes)
+
   - name: query-rewriter
     description: |
       Rewrite inefficient queries (N+1 patterns, subqueries) into efficient JOINs.
       Optimized query must be at least 2x faster and return identical results.
     difficulty: medium
-    
+    grader:
+      type: deterministic
+      criteria:
+        - Uses JOIN instead of subqueries
+        - Returns identical results to original query
+        - Performance improvement of 2x or better
+        - Includes proper GROUP BY for aggregations
+
   - name: schema-normalizer
     description: |
       Identify denormalized schemas and suggest normalized alternatives with foreign keys.
       Must create new tables, establish relationships, and provide safe migration paths.
     difficulty: hard
+    grader:
+      type: deterministic
+      criteria:
+        - Creates dimension tables for normalization
+        - Defines foreign key constraints
+        - Includes data migration logic
+        - Maintains referential integrity
 
 environment:
   observation_space:
