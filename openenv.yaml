@@ -16,9 +16,16 @@ tasks:
       Suggest CREATE INDEX statements for slow queries with inefficient WHERE clauses.
       Agent must identify the correct table and column(s) to index.
     difficulty: easy
+    weight: 0.7
     score: 0.7
     grader:
+      name: index-advisor-grader
       type: deterministic
+      config:
+        criteria:
+          - Identifies correct tables and columns for indexing
+          - Performance improvement of 1.5x or better
+          - Avoids over-indexing (max 5 indexes)
       criteria:
         - Identifies correct tables and columns for indexing
         - Performance improvement of 1.5x or better
@@ -29,9 +36,17 @@ tasks:
       Rewrite inefficient queries (N+1 patterns, subqueries) into efficient JOINs.
       Optimized query must be at least 2x faster and return identical results.
     difficulty: medium
+    weight: 0.75
     score: 0.75
     grader:
+      name: query-rewriter-grader
       type: deterministic
+      config:
+        criteria:
+          - Uses JOIN instead of subqueries
+          - Returns identical results to original query
+          - Performance improvement of 2x or better
+          - Includes proper GROUP BY for aggregations
       criteria:
         - Uses JOIN instead of subqueries
         - Returns identical results to original query
@@ -43,9 +58,17 @@ tasks:
       Identify denormalized schemas and suggest normalized alternatives with foreign keys.
       Must create new tables, establish relationships, and provide safe migration paths.
     difficulty: hard
+    weight: 0.8
     score: 0.8
     grader:
+      name: schema-normalizer-grader
       type: deterministic
+      config:
+        criteria:
+          - Creates dimension tables for normalization
+          - Defines foreign key constraints
+          - Includes data migration logic
+          - Maintains referential integrity
       criteria:
         - Creates dimension tables for normalization
         - Defines foreign key constraints
@@ -105,8 +128,8 @@ environment:
         description: Additional action metadata
 
   reward_range:
-    min: -1.0
-    max: 1.0
+    min: 0.01
+    max: 0.99
 
 api:
   base_path: /

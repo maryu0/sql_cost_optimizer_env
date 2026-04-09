@@ -225,7 +225,7 @@ class SQLOptimizerEnv:
                 self.db
             )
         else:
-            grade_score = 0.0
+            grade_score = 0.01
             grade_feedback = "Unknown task type"
 
         # Calculate reward

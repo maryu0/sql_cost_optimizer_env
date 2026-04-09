@@ -90,8 +90,8 @@ class RewardCalculator:
             safety_component
         )
 
-        # Clamp to [-1.0, 1.0]
-        total_score = max(-1.0, min(1.0, total_score))
+        # Clamp to strict (0, 1) for validator compatibility.
+        total_score = max(0.01, min(0.99, total_score))
 
         # Generate feedback
         feedback = self._generate_feedback(

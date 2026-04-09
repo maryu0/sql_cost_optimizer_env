@@ -6,10 +6,19 @@ Suggest CREATE INDEX statements for slow queries with inefficient WHERE clauses.
 TASK_CONFIG = {
     "name": "index-advisor",
     "difficulty": "easy",
+    "weight": 0.7,
     "score": 0.7,
     "description": "Suggest indexes to optimize slow WHERE clause queries",
     "grader": {
+        "name": "index-advisor-grader",
         "type": "deterministic",
+        "config": {
+            "criteria": [
+                "Identifies correct tables and columns for indexing",
+                "Performance improvement of 1.5x or better",
+                "Avoids over-indexing (max 5 indexes)"
+            ]
+        },
         "criteria": [
             "Identifies correct tables and columns for indexing",
             "Performance improvement of 1.5x or better",

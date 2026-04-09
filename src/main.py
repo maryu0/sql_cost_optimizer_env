@@ -181,9 +181,15 @@ async def list_tasks():
                 "name": task_name,
                 "difficulty": config["difficulty"],
                 "description": config["description"],
+                "weight": config.get("weight", config.get("score", 0.5)),
                 "score": config.get("score", 0.5),
                 "grader": {
-                    **config.get("grader", {"type": "deterministic", "criteria": []}),
+                    **config.get("grader", {
+                        "name": f"{task_name}-grader",
+                        "type": "deterministic",
+                        "config": {"criteria": []},
+                        "criteria": []
+                    }),
                     "score": config.get("score", 0.5)
                 }
             }
