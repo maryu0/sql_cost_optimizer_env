@@ -9,6 +9,7 @@ import sys
 import os
 import time
 import logging
+import json
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -45,7 +46,10 @@ load_dotenv()
 # Initialize OpenAI-compatible client (REQUIRED by hackathon rules)
 # Use validator-provided credentials with sensible defaults
 API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
-API_KEY = os.getenv("API_KEY", os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY") or "sk-test-dummy-key-for-validation")
+API_KEY = os.getenv(
+    "HF_TOKEN",
+    os.getenv("API_KEY", os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY") or "sk-test-dummy-key-for-validation")
+)
 
 logger.info(f"Using API endpoint: {API_BASE_URL}")
 
@@ -79,8 +83,7 @@ def _clamp_strict_score(value: float) -> float:
 
 
 def _print_validator_json(task_scores: dict[str, dict]) -> None:
-    """Print validator-friendly JSON payload with exactly 3 tasks."""
-    import json
+    """Build validator-friendly JSON payload with exactly 3 tasks."""
 
     results = {"tasks": []}
     for task_name in TASK_NAMES:
@@ -95,9 +98,32 @@ def _print_validator_json(task_scores: dict[str, dict]) -> None:
             }
         })
 
-    print("\n[OUTPUT_JSON]")
-    print(json.dumps(results, indent=2))
-    print("[/OUTPUT_JSON]")
+    return results
+
+
+def _emit_start() -> None:
+    """Emit start marker and structured context payload."""
+    payload = {
+        "model": MODEL_NAME,
+        "api_base_url": API_BASE_URL,
+        "tasks": TASK_NAMES,
+    }
+    print("[START]")
+    print(json.dumps(payload, separators=(",", ":")))
+
+
+def _emit_step(payload: dict) -> None:
+    """Emit per-task structured step payload."""
+    print("[STEP]")
+    print(json.dumps(payload, separators=(",", ":")))
+
+
+def _emit_end(task_scores: dict[str, dict], runtime_seconds: float) -> None:
+    """Emit end marker and final validator payload."""
+    payload = _print_validator_json(task_scores)
+    payload["runtime_seconds"] = round(runtime_seconds, 3)
+    print("[END]")
+    print(json.dumps(payload, separators=(",", ":")))
 
 
 def generate_optimization_action(observation: dict, task_type: str) -> Action:
@@ -187,7 +213,7 @@ Be concise and focused on the optimization.
         return action
 
     except Exception as e:
-        print(f"[ERROR] Error generating action: {e}")
+        logger.warning(f"Action generation error for {task_type}: {e}")
         # Fallback action
         return Action(
             optimized_query=observation['query'],  # Return original
@@ -201,14 +227,7 @@ def run_baseline_inference():
     """
     Run baseline inference on all tasks.
     """
-    print("[START]")
-    print("=" * 80)
-    print("SQL COST OPTIMIZER - BASELINE INFERENCE")
-    print("=" * 80)
-    print(f"Model: {MODEL_NAME}")
-    print(f"API Base: {os.getenv('API_BASE_URL', 'https://api.openai.com/v1')}")
-    print("=" * 80)
-    print()
+    _emit_start()
 
     # Initialize environment
     env = SQLOptimizerEnv()
@@ -229,11 +248,6 @@ def run_baseline_inference():
     start_time = time.time()
 
     for task_name in tasks:
-        print(f"\n[STEP]")
-        print(f"\n{'='*80}")
-        print(f"TASK: {task_name.upper()}")
-        print(f"{'='*80}")
-
         try:
             # Reset environment
             obs = env.reset(task_name=task_name, seed=42)
@@ -242,84 +256,57 @@ def run_baseline_inference():
             # Generate action using LLM
             action = generate_optimization_action(obs_dict, task_name)
 
-            print(f"\n[INFO] Generated Optimization:")
-            print(f"   {action.optimized_query[:200]}...")
-
             # Execute action
-            print(f"\n[RUN] Executing optimization...")
             obs, reward, done, info = env.step(action)
 
-            # Display results
-            print(f"\n[RESULT] RESULTS:")
-            print(f"   Reward Score: {reward.score:.3f}")
-            print(f"   Grade Score: {info.get('grade_score', 0.0):.3f}")
-            print(f"   Feedback: {reward.feedback}")
-            print(f"   Done: {done}")
-
             # Store score
+            grade_score = _clamp_strict_score(float(info.get('grade_score', 0.01)))
             all_scores[task_name] = {
                 "reward": reward.score,
-                "grade": info.get('grade_score', 0.0),
+                "grade": grade_score,
                 "speedup": info.get('optimized_time_ms', 0.0),
                 "feedback": reward.feedback
             }
-
-            print(f"\n[PERF] Performance:")
-            print(f"   Baseline Time: {info.get('baseline_time_ms', 0.0):.2f} ms")
-            print(f"   Optimized Time: {info.get('optimized_time_ms', 0.0):.2f} ms")
             speedup = (
                 info.get('baseline_time_ms', 1.0) / info.get('optimized_time_ms', 1.0)
                 if info.get('optimized_time_ms', 0.0) > 0 else 1.0
             )
-            print(f"   Speedup: {speedup:.2f}x")
+            _emit_step({
+                "task": task_name,
+                "status": "ok",
+                "grader": {
+                    "score": grade_score,
+                    "feedback": reward.feedback
+                },
+                "reward": _clamp_strict_score(float(reward.score)),
+                "speedup": round(float(speedup), 4),
+                "done": bool(done)
+            })
 
         except Exception as e:
-            print(f"\n[ERROR] ERROR in {task_name}: {str(e)}")
             all_scores[task_name] = {
-                "reward": -1.0,
+                "reward": 0.01,
                 "grade": 0.01,  # Must be strictly between 0 and 1, not exactly 0.0
                 "speedup": 0.0,
                 "feedback": f"Error: {str(e)}"
             }
+            _emit_step({
+                "task": task_name,
+                "status": "error",
+                "grader": {
+                    "score": 0.01,
+                    "feedback": f"Error: {str(e)}"
+                },
+                "reward": 0.01,
+                "speedup": 0.0,
+                "done": True
+            })
 
     # Cleanup
     env.close()
 
-    # Summary
     elapsed_time = time.time() - start_time
-    print(f"\n\n{'='*80}")
-    print("SUMMARY")
-    print(f"{'='*80}")
-    print(f"Total Runtime: {elapsed_time:.2f} seconds")
-    print(f"\nScores by Task:")
-
-    for task_name, scores in all_scores.items():
-        print(f"\n  {task_name}:")
-        print(f"    Reward: {scores['reward']:.3f}")
-        print(f"    Grade:  {scores['grade']:.3f}")
-        print(f"    Feedback: {scores['feedback'][:80]}...")
-
-    avg_reward = sum(s['reward'] for s in all_scores.values()) / len(all_scores)
-    avg_grade = sum(s['grade'] for s in all_scores.values()) / len(all_scores)
-
-    print(f"\n  AVERAGES:")
-    print(f"    Reward: {avg_reward:.3f}")
-    print(f"    Grade:  {avg_grade:.3f}")
-
-    print(f"\n{'='*80}")
-    print("[OK] Baseline inference complete!")
-    print(f"{'='*80}")
-
-    # Verify runtime constraint
-    if elapsed_time > 1200:  # 20 minutes
-        print(f"\n[WARN] WARNING: Runtime exceeded 20 minutes ({elapsed_time:.2f}s)")
-    else:
-        print(f"\n[OK] Runtime within 20-minute limit ({elapsed_time:.2f}s)")
-
-    # Print JSON output for validator (always 3 tasks, strict in-range scores)
-    _print_validator_json(all_scores)
-
-    print("[END]")
+    _emit_end(all_scores, elapsed_time)
     return all_scores
 
 
@@ -330,8 +317,8 @@ if __name__ == "__main__":
         logger.info("=" * 80)
 
         # Check environment variables (optional for validation)
-        if not os.getenv("OPENAI_API_KEY") and not os.getenv("GROQ_API_KEY"):
-            logger.warning("No API key found. Using test key for validation.")
+        if not os.getenv("HF_TOKEN") and not os.getenv("OPENAI_API_KEY") and not os.getenv("GROQ_API_KEY"):
+            logger.warning("No HF_TOKEN/API key found. Using fallback key for validation.")
 
         # Run inference
         try:
@@ -339,15 +326,15 @@ if __name__ == "__main__":
             logger.info("Inference completed successfully")
         except Exception as e:
             logger.error(f"Inference error: {str(e)}", exc_info=True)
-            # Emit fallback validator JSON so score parsing never fails.
-            _print_validator_json({})
+            _emit_start()
+            _emit_end({}, 0.0)
             # Exit 0 even on error to avoid validator failure
             sys.exit(0)
 
         sys.exit(0)
     except Exception as e:
         logger.error(f"FATAL ERROR: {str(e)}", exc_info=True)
-        # Emit fallback validator JSON so score parsing never fails.
-        _print_validator_json({})
+        _emit_start()
+        _emit_end({}, 0.0)
         # Always exit 0 in validation environment
         sys.exit(0)
