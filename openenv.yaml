@@ -17,19 +17,13 @@ tasks:
       Agent must identify the correct table and column(s) to index.
     difficulty: easy
     weight: 0.7
-    score: 0.7
     grader:
       name: index-advisor-grader
-      type: deterministic
       config:
         criteria:
           - Identifies correct tables and columns for indexing
           - Performance improvement of 1.5x or better
           - Avoids over-indexing (max 5 indexes)
-      criteria:
-        - Identifies correct tables and columns for indexing
-        - Performance improvement of 1.5x or better
-        - Avoids over-indexing (max 5 indexes)
 
   - name: query-rewriter
     description: |
@@ -37,21 +31,14 @@ tasks:
       Optimized query must be at least 2x faster and return identical results.
     difficulty: medium
     weight: 0.75
-    score: 0.75
     grader:
       name: query-rewriter-grader
-      type: deterministic
       config:
         criteria:
           - Uses JOIN instead of subqueries
           - Returns identical results to original query
           - Performance improvement of 2x or better
           - Includes proper GROUP BY for aggregations
-      criteria:
-        - Uses JOIN instead of subqueries
-        - Returns identical results to original query
-        - Performance improvement of 2x or better
-        - Includes proper GROUP BY for aggregations
 
   - name: schema-normalizer
     description: |
@@ -59,21 +46,14 @@ tasks:
       Must create new tables, establish relationships, and provide safe migration paths.
     difficulty: hard
     weight: 0.8
-    score: 0.8
     grader:
       name: schema-normalizer-grader
-      type: deterministic
       config:
         criteria:
           - Creates dimension tables for normalization
           - Defines foreign key constraints
           - Includes data migration logic
           - Maintains referential integrity
-      criteria:
-        - Creates dimension tables for normalization
-        - Defines foreign key constraints
-        - Includes data migration logic
-        - Maintains referential integrity
 
 environment:
   observation_space:
