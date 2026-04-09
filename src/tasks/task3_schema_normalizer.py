@@ -6,7 +6,17 @@ Identify denormalized schemas and suggest normalized alternatives with foreign k
 TASK_CONFIG = {
     "name": "schema-normalizer",
     "difficulty": "hard",
+    "score": 0.8,
     "description": "Normalize denormalized schema to reduce redundancy and improve integrity",
+    "grader": {
+        "type": "deterministic",
+        "criteria": [
+            "Creates dimension tables for normalization",
+            "Defines foreign key constraints",
+            "Includes data migration logic",
+            "Maintains referential integrity"
+        ]
+    },
     
     "initial_query": """
         SELECT 

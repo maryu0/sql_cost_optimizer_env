@@ -16,7 +16,7 @@ tasks:
       Suggest CREATE INDEX statements for slow queries with inefficient WHERE clauses.
       Agent must identify the correct table and column(s) to index.
     difficulty: easy
-    score: 0.5
+    score: 0.7
     grader:
       type: deterministic
       criteria:
@@ -29,7 +29,7 @@ tasks:
       Rewrite inefficient queries (N+1 patterns, subqueries) into efficient JOINs.
       Optimized query must be at least 2x faster and return identical results.
     difficulty: medium
-    score: 0.65
+    score: 0.75
     grader:
       type: deterministic
       criteria:

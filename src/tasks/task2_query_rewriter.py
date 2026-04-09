@@ -6,7 +6,17 @@ Rewrite inefficient queries (N+1 patterns, subqueries) into efficient JOINs.
 TASK_CONFIG = {
     "name": "query-rewriter",
     "difficulty": "medium",
+    "score": 0.75,
     "description": "Rewrite subqueries into efficient JOINs for better performance",
+    "grader": {
+        "type": "deterministic",
+        "criteria": [
+            "Uses JOIN instead of subqueries",
+            "Returns identical results to original query",
+            "Performance improvement of 2x or better",
+            "Includes proper GROUP BY for aggregations"
+        ]
+    },
     
     "initial_query": """
         SELECT 

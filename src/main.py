@@ -180,7 +180,9 @@ async def list_tasks():
             {
                 "name": task_name,
                 "difficulty": config["difficulty"],
-                "description": config["description"]
+                "description": config["description"],
+                "score": config.get("score", 0.5),
+                "grader": config.get("grader", {"type": "deterministic", "criteria": []})
             }
             for task_name, config in env.tasks.items()
         ]

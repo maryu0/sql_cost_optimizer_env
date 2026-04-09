@@ -6,7 +6,16 @@ Suggest CREATE INDEX statements for slow queries with inefficient WHERE clauses.
 TASK_CONFIG = {
     "name": "index-advisor",
     "difficulty": "easy",
+    "score": 0.7,
     "description": "Suggest indexes to optimize slow WHERE clause queries",
+    "grader": {
+        "type": "deterministic",
+        "criteria": [
+            "Identifies correct tables and columns for indexing",
+            "Performance improvement of 1.5x or better",
+            "Avoids over-indexing (max 5 indexes)"
+        ]
+    },
     
     "initial_query": """
         SELECT u.name, u.email, COUNT(o.order_id) as order_count
