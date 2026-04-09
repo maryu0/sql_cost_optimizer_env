@@ -32,7 +32,7 @@ class IndexAdvisorGrader:
         Returns:
             Tuple of (score, feedback)
         """
-        score = 0.0
+        score = 0.01
         feedback_parts = []
 
         # Extract CREATE INDEX statements
@@ -120,7 +120,7 @@ class QueryRewriterGrader:
         Returns:
             Tuple of (score, feedback)
         """
-        score = 0.0
+        score = 0.01
         feedback_parts = []
 
         # Normalize SQL for analysis
@@ -221,7 +221,7 @@ class SchemaNormalizerGrader:
         Returns:
             Tuple of (score, feedback)
         """
-        score = 0.0
+        score = 0.01
         feedback_parts = []
 
         sql_normalized = action_sql.upper()
